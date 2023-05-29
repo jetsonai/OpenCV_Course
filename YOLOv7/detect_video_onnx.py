@@ -77,7 +77,6 @@ class DetectClass():
         image = image.transpose((2, 0, 1))
         image = np.expand_dims(image, 0)
         image = np.ascontiguousarray(image)
-
         im = image.astype(np.float32)
         im /= 255
         return im, drawboard, whiteboard, ratio, dwdh
@@ -119,12 +118,9 @@ class DetectClass():
     def imageProcessing(self, cv_img):
         start = time.time()
         im, drawboard, whiteboard, ratio, dwdh = self.preProcessing(cv_img)
-        
         outputs = self.inference(im)
-        dst_image = imageProcessingCV(cv_img)
-        
+        dst_image = imageProcessingCV(cv_img)        
         im0, det_info = self.postProcessing(outputs, dst_image, drawboard, whiteboard, ratio, dwdh)
-        
         s=''
         for k, v in det_info.items():
             s += f"{v} {k}{'s' * (v > 1)}, "  # add to string
