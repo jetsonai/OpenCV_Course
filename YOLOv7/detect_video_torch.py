@@ -2,14 +2,11 @@
 import argparse
 import time
 from pathlib import Path
-
 import cv2
 import torch
 import torch.backends.cudnn as cudnn
 from numpy import random
 import numpy as np
-
-
 from models.experimental import attempt_load
 from utils.datasets import letterbox
 from utils.general import check_img_size, non_max_suppression, scale_coords, set_logging, increment_path
