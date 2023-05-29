@@ -4,8 +4,20 @@ import numpy as np
 
 def imageProcessing(src_image):
     src_image = checkValidImage(src_image)
-    dst_image = imageCopy(src_image)
+    dst_image = imageClosing(src_image)
+    dst_image = convertColor(dst_image, cv2.COLOR_BGR2GRAY)
+    dst_image = cannyEdge(dst_image, 100, 200)
+    height, width = src_image.shape[:2]
+    pt1 = (width*0.45, height*0.7)
+    pt2 = (width*0.55, height*0.7)
+    pt3 = (width, height*0.9)
+    pt4 = (0, height*0.9)
+    roi_corners = np.array([[pt1, pt2, pt3, pt4]], dtype=np.int32)
+    image_roi = polyROI(dst_image, roi_corners)
+    lines = houghLinesP(image_roi, 1, np.pi/180, 40)
+    dst_image = lineFitting(src_image, lines, (0, 0, 255), 5, 5. * np.pi / 180., 0.7)
     return dst_image
+
 
 
 def checkValidImage(src_image):
@@ -426,4 +438,110 @@ def drawHoughLinesP(image, lines):
     for i in range(len(lines)):
         for x1, y1, x2, y2 in lines[i]:
             cv2.line(result, (x1, y1), (x2, y2), (0, 0, 255), 3)
+    return result
+
+
+def houghCircles(image, method=cv2.HOUGH_GRADIENT, dp = 1, minDist = 10, canny = 50, threshold = 30, minRadius = 0, maxRadius = 0):
+    circles = cv2.HoughCircles(image, method, dp, minDist, param1=canny, param2=threshold, minRadius=minRadius, maxRadius=maxRadius)
+    return circles
+
+
+def drawHoughCircles(image, circles):
+    result = imageCopy(image)
+    if circles is None:
+        return result
+    for i in circles[0,:]:
+        cx = int(i[0])
+        cy = int(i[1])
+        rr = int(i[2])
+        cv2.circle(result, (cx,cy), rr, (0, 255, 0), 2)
+        cv2.circle(result, (cx,cy), 2, (0, 0, 255), -1)
+    return result
+
+
+def splitTwoSideLines(lines, slope_threshold = (5. * np.pi / 180.)):
+    if lines is None:
+        return [], []
+    if len(lines) == 0:
+        return [], []
+    lefts = []
+    rights = []
+    for line in lines:
+        x1 = line[0,0]
+        y1 = line[0,1]
+        x2 = line[0,2]
+        y2 = line[0,3]
+        if (x2-x1) == 0:
+            continue
+        slope = (float)(y2-y1)/(float)(x2-x1)
+        if abs(slope) < slope_threshold:
+            continue
+        if slope <= 0:
+            lefts.append([slope, x1, y1, x2, y2])
+        else:
+            rights.append([slope, x1, y1, x2, y2])
+    return lefts, rights
+
+
+def splitOneSideLines(lines, slope_threshold = (5. * np.pi / 180.)):
+    arranged_lines = []
+    for line in lines:
+        x1 = line[0,0]
+        y1 = line[0,1]
+        x2 = line[0,2]
+        y2 = line[0,3]
+        if (x2-x1) == 0:
+            continue
+        slope = (float)(y2-y1)/(float)(x2-x1)
+        if abs(slope) < slope_threshold:
+            continue
+        arranged_lines.append([slope, x1, y1, x2, y2])
+    return arranged_lines
+
+
+def medianPoint(x):
+    if len(x) == 0:
+        return None
+    else:
+        xx = sorted(x)
+        return xx[(int)(len(xx)/2)]
+
+
+def interpolate(x1, y1, x2, y2, y):
+    return int(float(y - y1) * float(x2-x1) / float(y2-y1) + x1)
+
+
+def lineFittingOneSide(image, lines, color = (0,0,255), thickness = 3, slope_threshold = (5. * np.pi / 180.)):
+    result = imageCopy(image)
+    height = image.shape[0]
+    arrangedLines = splitOneSideLines(lines, slope_threshold)
+    medianLine = medianPoint(arrangedLines)
+    min_y = int(height*0.6)
+    max_y = height
+    min_x = interpolate(medianLine[1], medianLine[2], medianLine[3], medianLine[4], min_y)
+    max_x = interpolate(medianLine[1], medianLine[2], medianLine[3], medianLine[4], max_y)
+    cv2.line(result, (min_x, min_y), (max_x, max_y), color, thickness)
+    return result
+
+
+def lineFitting(image, lines, color = (0,0,255), thickness = 3, slope_threshold = (5. * np.pi / 180.), min_y_ratio = 0.7):
+    result = imageCopy(image)
+    height = image.shape[0]
+    lefts, rights = splitTwoSideLines(lines, slope_threshold)
+    min_y = int(height*min_y_ratio)
+    max_y = height
+    left = None
+    right = None
+    if len(lefts) > 0:
+        left = medianPoint(lefts)
+    if len(rights) > 0:    
+        right = medianPoint(rights)
+    if left is not None:
+        min_x_left = interpolate(left[1], left[2], left[3], left[4], min_y)
+        max_x_left = interpolate(left[1], left[2], left[3], left[4], max_y)
+        cv2.line(result, (min_x_left, min_y), (max_x_left, max_y), color, thickness)
+    if right is not None:
+        min_x_right = interpolate(right[1], right[2], right[3], right[4], min_y)
+        max_x_right = interpolate(right[1], right[2], right[3], right[4], max_y)
+        cv2.line(result, (min_x_right, min_y), (max_x_right, max_y), color, thickness)
     return result

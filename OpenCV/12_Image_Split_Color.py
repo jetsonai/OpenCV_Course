@@ -1,6 +1,7 @@
 from Utils.wrapper import *
 from Utils.utils import *
 
+
 '''
 def rangeColor(image, lower, upper):
     result = imageCopy(image)
@@ -10,6 +11,7 @@ def splitColor(image, lower, upper):
     mask = rangeColor(result, lower, upper)
     return cv2.bitwise_and(result, result, mask=mask)
 '''
+
 
 data = get_single_image()
 image = imageRead(data)

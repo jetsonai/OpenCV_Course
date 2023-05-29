@@ -5,6 +5,7 @@ from Utils.utils import *
 def nothing(x):
     pass
 
+
 data = get_single_image()
 image = imageRead(data)
 image = convertColor(image, cv2.COLOR_BGR2HSV)

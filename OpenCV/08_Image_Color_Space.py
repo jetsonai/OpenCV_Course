@@ -1,10 +1,13 @@
 from Utils.wrapper import *
 from Utils.utils import *
 
+
 '''
 def convertColor(image, flag=cv2.COLOR_BGR2GRAY):
     return cv2.cvtColor(image, flag)
 '''
+
+
 data = get_single_image(index=4)
 image = imageRead(data)
 imageShow('image', image)

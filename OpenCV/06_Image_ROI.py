@@ -1,6 +1,7 @@
 from Utils.wrapper import *
 from Utils.utils import *
 
+
 '''
 def cutRectROI(image, x1, y1, x2, y2):
     return image[y1:y2, x1:x2]
@@ -30,6 +31,7 @@ def polyROI(image, points):
     mask = fillPolyROI(image, points)
     return cv2.bitwise_and(image, mask)
 '''
+
 
 data = get_single_image()
 image = imageRead(data)

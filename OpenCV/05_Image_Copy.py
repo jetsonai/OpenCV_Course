@@ -1,10 +1,12 @@
 from Utils.wrapper import *
 from Utils.utils import *
 
+
 '''
 def imageCopy(src):
     return np.copy(src)
 '''
+
 
 data = get_single_image()
 image1 = imageRead(data)

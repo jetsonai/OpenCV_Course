@@ -51,7 +51,7 @@ def get_multiple_images(get_data_string = 'blackbox_images'):
     return get_multiple_datas(get_data_string)
 
 
-def get_multiple_images(get_data_string = 'blackbox_videos'):
+def get_multiple_videos(get_data_string = 'blackbox_videos'):
     return get_multiple_datas(get_data_string)
             
 
