@@ -14,6 +14,10 @@ from utils.plots import plot_one_box
 from utils.torch_utils import select_device, time_synchronized
 
 
+def imageProcessingCV(src_image):
+    dst_image = np.copy(src_image)
+    return dst_image
+
 
 class DetectClass():
     def __init__(self, opt):
@@ -59,7 +63,7 @@ class DetectClass():
         img /= 255.0  # 0 - 255 to 0.0 - 1.0
         if img.ndimension() == 3:
             img = img.unsqueeze(0)
-        return img, cv_img
+        return img
     
     
     @torch.no_grad()
@@ -97,14 +101,15 @@ class DetectClass():
         
         
     def imageProcessing(self, cv_img):
-        img, im0 = self.preProcessing(cv_img)
+        img = self.preProcessing(cv_img)
         pred, t0, t1, t2, t3 = self.inference(img)
-        im0, det_info = self.postProcessing(pred, img, im0)
+        dst_image = imageProcessingCV(cv_img)
+        dst_image, det_info = self.postProcessing(pred, img, dst_image)
         s=''
         for k, v in det_info.items():
             s += f"{v} {k}{'s' * (v > 1)}, "  # add to string
         print(f'{s}Done. ({(1E3 * (t2 - t1)):.1f}ms) Inference, ({(1E3 * (t3 - t2)):.1f}ms) NMS')
-        return im0
+        return dst_image
             
         
     def __call__(self, cv_img):
